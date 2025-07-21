@@ -17,40 +17,36 @@ logging.getLogger('').addHandler(console)
 logger = logging.getLogger("queue.simulation")
 logger.setLevel(logging.INFO)
 
+
 # ----- Helper Functions -----
 def generate_service_time(rate):
     return random.expovariate(rate)
+
 
 def generate_arrivals(probability, sample):
     if random.uniform(0, 1) <= probability:
         return random.choice(sample)
     return 0
 
-def enqueue_customers(queue, num_customers):
-    for _ in range(num_customers):
-        queue.append("Customer")
-
-def dequeue_customer(queue):
-    return queue.pop(0) if queue else None
 
 # ----- Simulation State -----
 minute = service_time = 0.0
 cumulative_service_time = 0.0
 arrival_counter = customer_counter = services_counter = 0
-customer_queue = []
+queue_length = 0
 total_minutes = TOTAL_HOURS * 60.0
 
 # ----- Simulation Loop -----
-while minute <= total_minutes or customer_queue:
+while minute <= total_minutes or queue_length > 0:
     arrivals = generate_arrivals(ARRIVAL_PROBABILITY, CUSTOMERS_ARRIVAL_SAMPLE)
     if arrivals > 0 and minute <= total_minutes:
         arrival_counter += 1
         customer_counter += arrivals
-        enqueue_customers(customer_queue, arrivals)
+        queue_length += arrivals
 
-    if customer_queue:
+    if queue_length > 0:
         if service_time <= 0.0:
-            dequeue_customer(customer_queue)
+            queue_length -= 1
             services_counter += 1
             service_time = generate_service_time(SERVICE_TIME_RATE)
             cumulative_service_time += service_time
